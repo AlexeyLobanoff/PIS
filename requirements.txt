@@ -1,0 +1,5 @@
+pymongo>=4.0
+pandas>=2.0
+openpyxl>=3.1
+xlsxwriter>=3.0
+customtkinter>=5.0

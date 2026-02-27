@@ -1,0 +1,22 @@
+2026-02-27 03:27:27,353 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 03:27:28,385 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 03:27:54,160 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 03:36:21,026 [INFO] reports: Улучшенный отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 03:36:21,843 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 03:36:44,787 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 03:51:31,421 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 03:51:40,221 [INFO] database: Критическая ошибка БД: Empty host (or extra comma in host list)
+2026-02-27 03:52:22,452 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 03:52:32,383 [INFO] database: Ошибка: Сервер MongoDB недоступен (Таймаут 5с или неверный URI)
+2026-02-27 03:53:40,174 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 03:53:59,676 [INFO] database: Успешное подключение к MongoDB (БД: etl_db, Коллекция: records)
+2026-02-27 03:55:59,665 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:00:07,582 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:00:11,539 [INFO] database: Успешное подключение к: dfyz_db
+2026-02-27 04:11:02,725 [INFO] reports: Текстовый отчёт (без сокращений) сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:11:06,698 [INFO] database: Успешное подключение к MongoDB (База: dfyz_db)
+2026-02-27 04:11:16,256 [INFO] database: ОШИБКА АВТОРИЗАЦИИ: command insert requires authentication
+2026-02-27 04:11:16,381 [INFO] database: Соединение с БД закрыто.
+2026-02-27 04:30:08,646 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:30:09,662 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:30:33,689 [INFO] database: Соединение с MongoDB закрыто
