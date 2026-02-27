@@ -20,3 +20,158 @@
 2026-02-27 04:30:08,646 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
 2026-02-27 04:30:09,662 [INFO] database: Подключение к MongoDB успешно
 2026-02-27 04:30:33,689 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:36:25,625 [ERROR] __main__: DB Connection Error: localhost:27017: [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0f5142fbbe1abec5fe931, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-02-27 04:44:48,875 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:44:49,884 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:45:24,462 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:51:54,994 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:51:59,082 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:52:00,012 [INFO] database: Ошибка аутентификации MongoDB. Укажите в URI логин и пароль, например: mongodb://user:password@host:27017/
+2026-02-27 04:52:00,012 [ERROR] database: insert_many
+Traceback (most recent call last):
+  File "C:\Users\AdmiN\Desktop\курсач\database.py", line 138, in insert_many
+    self._coll.insert_many(docs)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\collection.py", line 975, in insert_many
+    blk.execute(write_concern, session, _Op.INSERT)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 751, in execute
+    return self.execute_command(generator, write_concern, session, operation)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 604, in execute_command
+    _ = client._retryable_write(
+        self.is_retryable,
+    ...<4 lines>...
+        operation_id=op_id,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 2895, in _write
+    return self._func(self._session, conn, self._retryable)  # type: ignore
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 593, in retryable_bulk
+    self._execute_command(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        generator,
+        ^^^^^^^^^^
+    ...<5 lines>...
+        full_result,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 538, in _execute_command
+    result, to_send = self._execute_batch(bwc, cmd, ops, client)
+                      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 462, in _execute_batch
+    result = self.write_command(bwc, cmd, request_id, msg, to_send, client)  # type: ignore[arg-type]
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\helpers.py", line 47, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\bulk.py", line 274, in write_command
+    reply = bwc.conn.write_command(request_id, msg, bwc.codec)  # type: ignore[misc]
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\pool.py", line 490, in write_command
+    helpers_shared._check_command_response(result, self.max_wire_version)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\helpers_shared.py", line 284, in _check_command_response
+    raise OperationFailure(errmsg, code, response, max_wire_version)
+pymongo.errors.OperationFailure: command insert requires authentication, full error: {'ok': 0.0, 'errmsg': 'command insert requires authentication', 'code': 13, 'codeName': 'Unauthorized'}
+2026-02-27 04:52:00,145 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:53:31,735 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:53:40,887 [INFO] database: Ошибка подключения к MongoDB (удалённый сервер): No servers found yet, Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0f91f24cf58d107d057fa, topology_type: Unknown, servers: [<ServerDescription ('95.165.107.126', 27017) server_type: Unknown, rtt: None>]>
+2026-02-27 04:53:40,887 [ERROR] database: Ошибка подключения к MongoDB (удалённый сервер): No servers found yet, Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0f91f24cf58d107d057fa, topology_type: Unknown, servers: [<ServerDescription ('95.165.107.126', 27017) server_type: Unknown, rtt: None>]>
+Traceback (most recent call last):
+  File "C:\Users\AdmiN\Desktop\курсач\database.py", line 50, in connect
+    self._client.admin.command("ping")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\database.py", line 934, in command
+    with self._client._conn_for_reads(read_preference, session, operation=command_name) as (
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 1885, in _conn_for_reads
+    server = self._select_server(read_preference, session, operation)
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: No servers found yet, Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0f91f24cf58d107d057fa, topology_type: Unknown, servers: [<ServerDescription ('95.165.107.126', 27017) server_type: Unknown, rtt: None>]>
+2026-02-27 04:54:31,270 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:54:33,244 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:55:05,870 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:55:33,535 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:55:55,563 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:56:24,170 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 04:56:41,753 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 04:57:15,649 [WARNING] reports: Не удалось добавить круговую диаграмму: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
+2026-02-27 04:57:15,649 [INFO] reports: Excel-отчёт сохранён: C:/Users/AdmiN/Desktop/курсач/задачи/Test1.xls
+2026-02-27 04:59:52,605 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 04:59:56,279 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:00:33,579 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:01:12,528 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:01:14,680 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:01:37,363 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:05:00,369 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:05:04,588 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:05:27,169 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:06:47,974 [INFO] reports: Отчёт об ошибках сохранён: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:06:50,198 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:07:22,449 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:11:04,196 [INFO] reports: Отчёт об ошибках сохранён в табличном виде: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:11:06,097 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:11:37,850 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:13:53,122 [INFO] reports: Подробный отчёт об ошибках сформирован: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:15:24,251 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:15:39,377 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:18:33,291 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:18:40,844 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:18:45,791 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:21:28,453 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:21:30,178 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:21:35,061 [INFO] database: Соединение с MongoDB закрыто
+2026-02-27 05:23:07,092 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-02-27 05:23:09,556 [INFO] database: Подключение к MongoDB успешно
+2026-02-27 05:23:33,102 [INFO] database: Соединение с MongoDB закрыто
