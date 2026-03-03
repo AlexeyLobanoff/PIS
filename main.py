@@ -190,19 +190,27 @@ class ETLApp:
         self.display_limit_entry.pack(side="right")
         self.display_limit_entry.insert(0, "50")
 
-        self.data_text = scrolledtext.ScrolledText(data_section, wrap=tk.WORD, height=15, bg="#1a1a1a", fg="#00ff00", font=("Consolas", 10))
-        self.data_text.pack(fill="both", expand=True, pady=10)
-        self.data_text.insert(tk.END, "Данные появятся после парсинга...\n")
-        self.data_text.config(state="disabled")
+        # Treeview для данных
+        columns = ("№", "Аккаунт", "ФИО", "Адрес", "Период", "Записи")
+        self.data_tree = ttk.Treeview(data_section, columns=columns, show="headings", height=15)
+        self.data_tree.pack(fill="both", expand=True, pady=10)
 
-        # Контекстное меню для копирования и вставки
-        self.context_menu = tk.Menu(self.data_text, tearoff=0)
-        self.context_menu.add_command(label="Копировать", command=self.copy_text)
-        self.context_menu.add_command(label="Вставить", command=self.paste_text)
-        self.data_text.bind("<Button-3>", self.show_context_menu)
-        self.data_text.bind("<Control-c>", self.copy_text)
-        self.data_text.bind("<Control-v>", self.paste_text)
-        self.data_text.bind("<Control-a>", self.select_all)
+        for col in columns:
+            self.data_tree.heading(col, text=col)
+            self.data_tree.column(col, width=100)
+
+        # Scrollbars
+        v_scroll = ttk.Scrollbar(data_section, orient="vertical", command=self.data_tree.yview)
+        self.data_tree.configure(yscrollcommand=v_scroll.set)
+        v_scroll.pack(side="right", fill="y")
+
+        # Контекстное меню
+        self.tree_menu = tk.Menu(self.data_tree, tearoff=0)
+        self.tree_menu.add_command(label="Копировать", command=self.copy_tree)
+        self.tree_menu.add_command(label="Выделить все", command=self.select_all_tree)
+        self.data_tree.bind("<Button-3>", self.show_tree_menu)
+        self.data_tree.bind("<Control-c>", self.copy_tree)
+        self.data_tree.bind("<Control-a>", self.select_all_tree)
 
         # Прогресс-бары
         progress_frame = ctk.CTkFrame(self.data_frame)
@@ -229,30 +237,20 @@ class ETLApp:
 
         self.btns = [self.btn_parse, self.btn_show_stats, self.btn_search, self.btn_save, self.btn_clear, self.btn_export, self.btn_export_csv]
 
-    def show_context_menu(self, event):
-        self.context_menu.post(event.x_root, event.y_root)
+    def show_tree_menu(self, event):
+        self.tree_menu.post(event.x_root, event.y_root)
 
-    def select_all(self, event=None):
-        self.data_text.tag_add(tk.SEL, "1.0", tk.END)
-        return "break"
-
-    def copy_text(self):
-        try:
-            selected = self.data_text.get(tk.SEL_FIRST, tk.SEL_LAST)
+    def copy_tree(self):
+        selected = self.data_tree.selection()
+        if selected:
+            values = self.data_tree.item(selected[0])['values']
+            text = "\t".join(str(v) for v in values)
             self.root.clipboard_clear()
-            self.root.clipboard_append(selected)
-        except tk.TclError:
-            # No selection
-            pass
+            self.root.clipboard_append(text)
 
-    def paste_text(self):
-        try:
-            clipboard = self.root.clipboard_get()
-            self.data_text.config(state="normal")
-            self.data_text.insert(tk.INSERT, clipboard)
-            self.data_text.config(state="disabled")
-        except tk.TclError:
-            pass
+    def select_all_tree(self, event=None):
+        for item in self.data_tree.get_children():
+            self.data_tree.selection_add(item)
 
     def paste_to_entry(self, event=None):
         try:
@@ -397,24 +395,21 @@ class ETLApp:
         _run_in_thread(work)
 
     def populate_tree(self, data):
-        """Заполняет ScrolledText спарсенными данными"""
-        self.data_text.config(state="normal")
-        self.data_text.delete(1.0, tk.END)
+        """Заполняет Treeview спарсенными данными"""
+        for item in self.data_tree.get_children():
+            self.data_tree.delete(item)
         if not data:
-            self.data_text.insert(tk.END, "Нет данных.\n")
-            self.data_text.config(state="disabled")
             return
         total = len(data)
         try:
             display_limit = int(self.display_limit_entry.get() or 50)
         except ValueError:
             display_limit = 50
-        self.data_text.insert(tk.END, f"Всего записей: {total}\nПоказаны первые {min(display_limit, total)}:\n\n")
         for i, row in enumerate(data[:display_limit]):
-            self.data_text.insert(tk.END, f"{i+1}. Аккаунт: {row.account}, ФИО: {row.full_name}, Адрес: {row.address}, Период: {row.period}, Записи: {row.entries}\n")
+            self.data_tree.insert("", "end", values=(i+1, row.account, row.full_name, row.address, row.period, row.entries))
         if total > display_limit:
-            self.data_text.insert(tk.END, f"\n... и ещё {total - display_limit} записей.\n")
-        self.data_text.config(state="disabled")
+            # Можно добавить сообщение, но в tree сложно, оставить как есть
+            pass
 
     def on_search(self):
         """Поиск в спарсенных данных"""
