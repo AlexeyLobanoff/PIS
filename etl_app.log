@@ -175,3 +175,136 @@ pymongo.errors.ServerSelectionTimeoutError: No servers found yet, Timeout: 5.0s,
 2026-02-27 05:23:07,092 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
 2026-02-27 05:23:09,556 [INFO] database: Подключение к MongoDB успешно
 2026-02-27 05:23:33,102 [INFO] database: Соединение с MongoDB закрыто
+2026-03-02 21:28:17,879 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-02 21:28:20,955 [INFO] database: Подключение к MongoDB успешно
+2026-03-02 21:28:33,813 [INFO] database: Соединение с MongoDB закрыто
+2026-03-02 21:29:45,194 [INFO] database: Подключение к MongoDB успешно
+2026-03-02 21:29:57,887 [INFO] database: Соединение с MongoDB закрыто
+2026-03-02 21:30:35,869 [INFO] database: Подключение к MongoDB успешно
+2026-03-02 21:30:48,588 [INFO] database: Соединение с MongoDB закрыто
+2026-03-02 21:31:18,023 [ERROR] reports: Ошибка при добавлении диаграммы в Excel: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
+2026-03-03 03:15:23,040 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:15:23,248 [INFO] reports: HTML-отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:15:34,580 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:15:55,034 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:16:08,127 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:16:23,456 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:19:29,895 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:19:29,996 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:19:47,489 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:19:47,669 [INFO] reports: HTML-отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:19:53,007 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:20:13,076 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:20:20,796 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:20:36,848 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:20:57,448 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:21:12,709 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:25:00,973 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:25:01,169 [INFO] reports: HTML-отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:32:47,354 [INFO] database: Ошибка при подключении к MongoDB: MongoDB URI options are key=value pairs
+2026-03-03 03:32:47,354 [ERROR] database: Ошибка при подключении к MongoDB: MongoDB URI options are key=value pairs
+Traceback (most recent call last):
+  File "C:\Users\AdmiN\Desktop\курсач\database.py", line 49, in connect
+    self._client = MongoClient(self.uri, serverSelectionTimeoutMS=5000)
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 804, in __init__
+    res = _validate_uri(
+        entity,
+    ...<4 lines>...
+        srv_max_hosts=srv_max_hosts,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\uri_parser_shared.py", line 560, in _validate_uri
+    options.update(split_options(opts, validate, warn, normalize))
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\uri_parser_shared.py", line 410, in split_options
+    raise InvalidURI("MongoDB URI options are key=value pairs") from None
+pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs
+2026-03-03 03:32:53,154 [INFO] database: Ошибка при подключении к MongoDB: MongoDB URI options are key=value pairs
+2026-03-03 03:32:53,154 [ERROR] database: Ошибка при подключении к MongoDB: MongoDB URI options are key=value pairs
+Traceback (most recent call last):
+  File "C:\Users\AdmiN\Desktop\курсач\database.py", line 49, in connect
+    self._client = MongoClient(self.uri, serverSelectionTimeoutMS=5000)
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py", line 804, in __init__
+    res = _validate_uri(
+        entity,
+    ...<4 lines>...
+        srv_max_hosts=srv_max_hosts,
+    )
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\uri_parser_shared.py", line 560, in _validate_uri
+    options.update(split_options(opts, validate, warn, normalize))
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AdmiN\Desktop\курсач\.venv\Lib\site-packages\pymongo\uri_parser_shared.py", line 410, in split_options
+    raise InvalidURI("MongoDB URI options are key=value pairs") from None
+pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs
+2026-03-03 03:33:08,811 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:33:08,905 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:35:52,741 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:35:52,933 [INFO] reports: HTML-отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:36:10,706 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:36:30,511 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:36:38,416 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:37:22,809 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:38:42,705 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:38:42,920 [INFO] reports: HTML-отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:38:53,008 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:39:36,572 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:40:26,176 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:41:11,341 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:44:06,575 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:44:50,400 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:48:54,869 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:49:40,519 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:49:49,793 [INFO] reports: Excel-отчет (.xlsx) с диаграммой успешно сохранен.
+2026-03-03 03:50:35,766 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:50:35,963 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:52:09,124 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:52:09,316 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:52:12,690 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:52:32,685 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:53:34,459 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:53:34,654 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:53:37,558 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:53:57,308 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:54:03,374 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:56:12,660 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:56:23,417 [INFO] reports: Excel-отчет (.xlsx) с диаграммой успешно сохранен.
+2026-03-03 03:57:13,842 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 03:57:14,043 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 03:57:20,587 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 03:57:51,580 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 03:58:07,630 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 04:01:06,274 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:01:06,481 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:01:15,324 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 04:01:34,916 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 04:04:30,295 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 04:04:30,391 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 04:04:50,625 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:04:50,818 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:04:53,870 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 04:05:23,750 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 04:06:52,501 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:06:52,711 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:07:01,126 [INFO] database: Подключение к MongoDB успешно
+2026-03-03 04:09:29,226 [INFO] database: Соединение с MongoDB закрыто
+2026-03-03 04:09:34,587 [INFO] reports: CSV-отчет успешно сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\1.csv
+2026-03-03 04:10:12,253 [WARNING] matplotlib.axes._base: Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:13,100 [WARNING] matplotlib.axes._base: Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:14,552 [WARNING] matplotlib.axes._base: Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:17,370 [WARNING] matplotlib.axes._base: Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:18,875 [WARNING] matplotlib.axes._base: Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:19,084 [WARNING] matplotlib.axes._base: Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:10:19,277 [WARNING] matplotlib.axes._base: Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+2026-03-03 04:12:21,898 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:12:22,097 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:13:22,888 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:13:23,076 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:15:52,896 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:15:53,084 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:18:42,884 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:18:43,073 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:20:10,065 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:20:10,267 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-03 04:22:11,658 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-03 04:22:11,871 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html

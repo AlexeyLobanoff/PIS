@@ -62,19 +62,19 @@ def export_to_excel_with_chart(
         stats: dict[str, Any],
 ) -> None:
     """
-    Экспорт данных в формат .xls с созданием круговой диаграммы статистики.
+    Экспорт данных в формат .xlsx с созданием круговой диаграммы статистики.
     """
     if not data:
         logger.warning("Нет данных для экспорта.")
         return
 
-    # Гарантируем расширение .xls (даже если пришло .xlsx)
-    final_path = str(Path(output_path).with_suffix('.xls'))
+    # Гарантируем расширение .xlsx
+    final_path = str(Path(output_path).with_suffix('.xlsx'))
 
     # Создаем DataFrame из данных
     df = pd.DataFrame(data)
 
-    # Используем движок openpyxl (он создаст файл, который Excel откроет как .xls)
+    # Используем движок openpyxl
     with pd.ExcelWriter(final_path, engine="openpyxl") as writer:
         # Лист 1: Основные данные
         df.to_excel(writer, sheet_name="Данные", index=False)
@@ -110,6 +110,66 @@ def export_to_excel_with_chart(
         # Размещаем диаграмму на листе статистики
         ws_stats.add_chart(chart, "E2")
         wb.save(final_path)
-        logger.info("Excel-отчет (.xls) с диаграммой успешно сохранен.")
+        logger.info("Excel-отчет (.xlsx) с диаграммой успешно сохранен.")
     except Exception as e:
         logger.error("Ошибка при добавлении диаграммы в Excel: %s", e)
+def generate_html_errors_report(
+        filepath: str,
+        errors: List[Tuple[int, str, str]],  # Ожидаем кортеж: (номер, причина, исходная_строка)
+        encoding: str = "utf-8",
+) -> None:
+    """
+    Генерирует HTML отчет об ошибках парсинга.
+    Выводит полную причину и исходное содержание строки в виде таблицы.
+    """
+    path = Path(filepath)
+    report_path = path.parent / "errors_report.html"
+
+    try:
+        with open(report_path, "w", encoding=encoding) as f:
+            f.write("<!DOCTYPE html>\n<html>\n<head>\n<title>Отчет об ошибках парсинга</title>\n<style>\n")
+            f.write("body { font-family: Arial, sans-serif; margin: 20px; }\n")
+            f.write("h1 { color: #333; }\n")
+            f.write("table { border-collapse: collapse; width: 100%; }\n")
+            f.write("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n")
+            f.write("th { background-color: #f2f2f2; }\n")
+            f.write("</style>\n</head>\n<body>\n")
+            f.write("<h1>ОТЧЕТ ОБ ОШИБКАХ ПАРСИНГА</h1>\n")
+            f.write(f"<p>Файл: {path.name}</p>\n")
+            f.write("<table>\n")
+            f.write("<tr><th>СТРОКА</th><th>ПРИЧИНА ОШИБКИ</th><th>ИСХОДНОЕ СОДЕРЖАНИЕ</th></tr>\n")
+            for err in errors:
+                line_num = err[0]
+                reason = err[1]
+                raw_line = str(err[2]).strip() if len(err) > 2 else "Данные не переданы"
+                f.write(f"<tr><td>{line_num}</td><td>{reason}</td><td>{raw_line}</td></tr>\n")
+            f.write("</table>\n")
+            f.write(f"<p>ИТОГО КРИТИЧЕСКИХ ОШИБОК: {len(errors)}</p>\n")
+            f.write("</body>\n</html>\n")
+
+        logger.info("HTML отчет об ошибках сохранен: %s", report_path)
+    except Exception as e:
+        logger.error("Не удалось сохранить HTML отчет: %s", e)
+
+
+def export_to_csv(
+        output_path: str,
+        data: List[dict[str, Any]],
+) -> None:
+    """
+    Экспорт данных в формат CSV.
+    """
+    if not data:
+        logger.warning("Нет данных для экспорта.")
+        return
+
+    # Гарантируем расширение .csv
+    final_path = str(Path(output_path).with_suffix('.csv'))
+
+    # Создаем DataFrame из данных
+    df = pd.DataFrame(data)
+
+    # Экспорт в CSV
+    df.to_csv(final_path, index=False, encoding='utf-8-sig')
+
+    logger.info("CSV-отчет успешно сохранен: %s", final_path)

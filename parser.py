@@ -164,7 +164,7 @@ class DataProcessor:
     ) -> tuple[list, list]:
         """
         Читает файл построчно, кодировки utf-8 и cp1251.
-        Возвращает (список успешных ParsedRow, список (номер_строки, причина_ошибки)).
+        Возвращает (список успешных ParsedRow, список (номер_строки, причина_ошибки, исходная_строка)).
         """
         successful = []
         errors = []
@@ -185,7 +185,6 @@ class DataProcessor:
                 self._log(f"Ошибка чтения файла: {e}")
                 return [], [(0, str(e))]
 
-        if not lines and used_encoding is None:
             self._log("Не удалось прочитать файл (поддерживаются utf-8, cp1251)")
             return [], [(0, "Ошибка кодировки файла")]
 
@@ -193,10 +192,10 @@ class DataProcessor:
         for i, line in enumerate(lines, start=1):
             row, err = self.process_line(line, i)
             if err:
-                errors.append((i, err))
+                errors.append((i, err, line.strip()))
             else:
                 successful.append(row)
-            if progress_callback and total:
+            if progress_callback and total and (i % 100 == 0 or i == total):
                 progress_callback(i, total)
 
         return successful, errors

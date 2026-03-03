@@ -150,7 +150,7 @@ class MongoManager:
             logger.exception("insert_many")
         return inserted, total
 
-    def get_all_documents(self) -> list[dict[str, Any]]:
+    def get_all_documents(self, progress_callback: Optional[Callable[[int, int], None]] = None) -> list[dict[str, Any]]:
         """
         Возвращает все документы из коллекции для экспорта в отчёт.
         При ошибке возвращает пустой список.
@@ -159,10 +159,37 @@ class MongoManager:
             self._log("Нет подключения к MongoDB")
             return []
         try:
-            cursor = self._coll.find({}, {"_id": 0})
-            return list(cursor)
+            total = self._coll.count_documents({})
+            cursor = self._coll.find({}, {"_id": 0}).batch_size(1000)
+            docs = []
+            current = 0
+            for doc in cursor:
+                docs.append(doc)
+                current += 1
+                if progress_callback and total > 0 and (current % 1000 == 0 or current == total):
+                    progress_callback(current, total)
+            return docs
         except Exception as e:
             err_msg = f"Ошибка чтения из MongoDB: {e}"
             self._log(err_msg)
             logger.exception(err_msg)
             return []
+
+    def clear_collection(self) -> bool:
+        """
+        Очищает всю коллекцию, удаляя все документы.
+        Возвращает True при успехе, False при ошибке.
+        """
+        if self._client is None:
+            self._log("Нет подключения к MongoDB")
+            return False
+        try:
+            result = self._coll.delete_many({})
+            deleted_count = result.deleted_count
+            self._log(f"Удалено {deleted_count} документов из коллекции")
+            return True
+        except Exception as e:
+            err_msg = f"Ошибка при очистке коллекции: {e}"
+            self._log(err_msg)
+            logger.exception(err_msg)
+            return False
