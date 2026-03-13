@@ -3,10 +3,11 @@ import logging
 import queue
 import threading
 import tkinter as tk
+from reports import generate_html_errors_report
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext
 import tkinter.ttk as ttk
-
+from reports import export_to_excel_combined
 try:
     import winsound
     HAS_SOUND = True
@@ -191,14 +192,34 @@ class ETLApp:
         self.display_limit_entry.insert(0, "50")
 
         # Treeview для данных
-        columns = ("№", "Аккаунт", "ФИО", "Адрес", "Период", "Записи")
+        # --- Treeview для данных ---
+        # Добавляем колонку "Услуги", чтобы видеть детализацию
+        columns = ("№", "Аккаунт", "ФИО", "Адрес", "Период", "Сумма", "Услуги")
         self.data_tree = ttk.Treeview(data_section, columns=columns, show="headings", height=15)
-        self.data_tree.pack(fill="both", expand=True, pady=10)
 
-        for col in columns:
-            self.data_tree.heading(col, text=col)
-            self.data_tree.column(col, width=100)
+        # Настройка заголовков и ширины колонок
+        self.data_tree.heading("№", text="№")
+        self.data_tree.column("№", width=40, anchor="center")
 
+        self.data_tree.heading("Аккаунт", text="Лицевой счет")
+        self.data_tree.column("Аккаунт", width=100, anchor="center")
+
+        self.data_tree.heading("ФИО", text="ФИО Плательщика")
+        self.data_tree.column("ФИО", width=200, anchor="w")
+
+        self.data_tree.heading("Адрес", text="Адрес")
+        self.data_tree.column("Адрес", width=250, anchor="w")
+
+        self.data_tree.heading("Период", text="Дата")
+        self.data_tree.column("Период", width=80, anchor="center")
+
+        self.data_tree.heading("Сумма", text="Итого (руб)")
+        self.data_tree.column("Сумма", width=90, anchor="e")  # Числа лучше ровнять по правому краю
+
+        self.data_tree.heading("Услуги", text="Детализация услуг")
+        self.data_tree.column("Услуги", width=300, anchor="w")
+
+        self.data_tree.pack(fill="both", expand=True, side="left", pady=10)
         # Scrollbars
         v_scroll = ttk.Scrollbar(data_section, orient="vertical", command=self.data_tree.yview)
         self.data_tree.configure(yscrollcommand=v_scroll.set)
@@ -379,6 +400,7 @@ class ETLApp:
                 self._log(f"--- Начат парсинг: {Path(path).name} ---")
                 success_rows, errors = self.processor.process_file(path)
                 self._last_parsed_data = success_rows
+                self._last_parsed_errors = errors
                 self._last_stats = {"processed": len(success_rows) + len(errors), "success": len(success_rows),
                                     "errors": len(errors)}
                 self.populate_tree(success_rows)
@@ -394,23 +416,55 @@ class ETLApp:
 
         _run_in_thread(work)
 
-    def populate_tree(self, data):
-        """Заполняет Treeview спарсенными данными"""
-        for item in self.data_tree.get_children():
-            self.data_tree.delete(item)
-        if not data:
-            return
-        total = len(data)
-        try:
-            display_limit = int(self.display_limit_entry.get() or 50)
-        except ValueError:
-            display_limit = 50
-        for i, row in enumerate(data[:display_limit]):
-            self.data_tree.insert("", "end", values=(i+1, row.account, row.full_name, row.address, row.period, row.entries))
-        if total > display_limit:
-            # Можно добавить сообщение, но в tree сложно, оставить как есть
-            pass
+    def populate_tree(self, rows):
+        # 1. Сначала очищаем таблицу
+        self.data_tree.delete(*self.data_tree.get_children())
 
+        if not rows:
+            return
+
+        # 2. ПОЛУЧАЕМ ЛИМИТ (то, чего не хватало)
+        try:
+            limit_val = self.display_limit_entry.get().strip()
+            limit = int(limit_val) if limit_val else 50
+        except ValueError:
+            limit = 50
+            self._log("Ошибка: Некорректный лимит, использую 50 строк по умолчанию.")
+
+        # 3. СОЗДАЕМ display_rows (определение переменной)
+        display_rows = rows[:limit]
+
+        # 4. ЗАПОЛНЯЕМ ТАБЛИЦУ
+        for i, row in enumerate(display_rows):
+            # Проверяем, пришел ли нам объект или словарь (из БД)
+            is_dict = isinstance(row, dict)
+
+            # Универсальное получение данных (поддерживает и старый, и новый формат)
+            acc = row.get("Лицевой счет") if is_dict else getattr(row, 'account', '-')
+            fio = row.get("ФИО") if is_dict else getattr(row, 'full_name', '-')
+            addr = row.get("Адрес") if is_dict else getattr(row, 'address', '-')
+            period = row.get("Период") if is_dict else getattr(row, 'period_display', '-')
+            total = row.get("Общая сумма") if is_dict else getattr(row, 'total_amount', 0.0)
+            entries = row.get("Услуги") if is_dict else getattr(row, 'entries', [])
+
+            # Форматируем список услуг в одну строку
+            services_str = "-"
+            if entries:
+                services_str = ", ".join(
+                    [f"{item.get('Счёт и услуга', 'Услуга')}: {item.get('Сумма', 0)}" for item in entries])
+
+            # Вставляем данные в Treeview
+            self.data_tree.insert("", "end", values=(
+                i + 1,
+                acc,
+                fio,
+                addr,
+                period,
+                f"{total:.2f}",
+                services_str
+            ))
+
+        self._log(f"Отображено {len(display_rows)} из {len(rows)} записей.")
     def on_search(self):
         """Поиск в спарсенных данных"""
         query = self.search_entry.get().strip().lower()
@@ -494,53 +548,48 @@ class ETLApp:
         _run_in_thread(work)
 
     def on_export(self):
-        """Экспорт всей коллекции из БД в Excel с автоматическим расширением файла"""
-        uri = self.entry_uri.get().strip()
-        coll_name = self.entry_collection.get().strip() or "records"
+        """Экспорт результатов последнего парсинга в Excel (Успех + Ошибки)"""
+        errors_data = getattr(self, '_last_parsed_errors', [])
+        if errors_data:
+            # Передаем путь к исходному файлу, отчет создастся рядом
+            generate_html_errors_report(self.file_label.cget("text"), errors_data)
+        # Проверяем, запускал ли пользователь парсинг
+        if not hasattr(self, '_last_parsed_data') and not hasattr(self, '_last_parsed_errors'):
+            messagebox.showwarning("Внимание", "Сначала выберите файл и запустите парсинг!")
+            return
 
         path = filedialog.asksaveasfilename(
             defaultextension=".xlsx",
-            filetypes=[("Excel Workbook", "*.xlsx")],
-            title="Сохранить отчет"
+            filetypes=[("Excel отчет", "*.xlsx")],
+            title="Сохранить отчет о парсинге"
         )
-        if not path: return
+        if not path:
+            return
 
-        # ГАРАНТИЯ РАСШИРЕНИЯ: Если пользователь стёр .xlsx или ввёл другое, исправляем
+        # Защита от кривого ввода расширения пользователем
         final_path = str(Path(path).with_suffix('.xlsx'))
 
-        self.log_queue.put(("state", "disabled"))
+        self.btn_export.configure(state="disabled")
+        self._log("Формирование объединенного Excel-отчета...")
 
         def work():
             try:
-                mongo = MongoManager(uri, collection=coll_name, log_callback=self._log)
-                if mongo.connect():
-                    self._log(f"Извлечение данных из '{coll_name}' для отчета...")
-                    docs = mongo.get_all_documents(progress_callback=lambda c, t: self.log_queue.put(("progress", (c, t, "export"))))
-                    mongo.disconnect()
+                # Берем данные из памяти приложения
+                success_data = getattr(self, '_last_parsed_data', [])
+                errors_data = getattr(self, '_last_parsed_errors', [])
 
-                    if not docs:
-                        self._log("Ошибка: Таблица пуста, нечего экспортировать.")
-                        return
+                # Вызываем нашу новую функцию
+                export_to_excel_combined(final_path, success_data, errors_data)
 
-                    if len(docs) > 10000:
-                        self._log(f"Предупреждение: Экспорт {len(docs)} записей может занять время. Пожалуйста, подождите...")
-
-                    if len(docs) > 50000:
-                        self._log(f"Экспорт ограничен 50000 записями из {len(docs)}. Для полного экспорта используйте меньшую коллекцию.")
-                        docs = docs[:50000]
-
-                    # Используем текущую статистику или считаем по факту из БД
-                    stats = self._last_stats if self._last_stats else {"processed": len(docs), "success": len(docs),
-                                                                       "errors": 0}
-
-                    export_to_excel_with_chart(final_path, docs, stats)
-                    self._log(f"Excel-отчет успешно создан: {final_path}")
-                    self.log_queue.put(("notify", f"Экспорт завершен! Отчет сохранен: {final_path}"))
+                self._log(f"Отчет успешно сохранен: {final_path}")
+                self.log_queue.put(
+                    ("notify", f"Отчет сохранен!\n\nУспешных: {len(success_data)}\nОшибок: {len(errors_data)}"))
             except Exception as e:
-                self._log(f"Ошибка при экспорте: {e}")
+                self._log(f"Ошибка при создании Excel: {e}")
             finally:
                 self.log_queue.put(("state", "normal"))
 
+        # Запускаем в фоне, чтобы интерфейс не завис
         _run_in_thread(work)
 
     def on_export_csv(self):

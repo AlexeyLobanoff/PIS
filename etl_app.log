@@ -308,3 +308,7 @@ pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs
 2026-03-03 04:20:10,267 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
 2026-03-03 04:22:11,658 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
 2026-03-03 04:22:11,871 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-13 04:01:44,348 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-13 04:01:44,535 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
+2026-03-13 04:02:12,747 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-13 04:02:12,755 [INFO] reports: HTML отчет успешно создан: C:\Users\AdmiN\Desktop\курсач\задачи\Тестовые данные.errors.html
