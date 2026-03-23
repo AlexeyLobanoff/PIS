@@ -312,3 +312,8 @@ pymongo.errors.InvalidURI: MongoDB URI options are key=value pairs
 2026-03-13 04:01:44,535 [INFO] reports: HTML отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.html
 2026-03-13 04:02:12,747 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
 2026-03-13 04:02:12,755 [INFO] reports: HTML отчет успешно создан: C:\Users\AdmiN\Desktop\курсач\задачи\Тестовые данные.errors.html
+2026-03-16 13:13:43,002 [INFO] reports: Табличный отчет об ошибках сохранен: C:\Users\AdmiN\Desktop\курсач\задачи\errors_report.txt
+2026-03-16 13:13:43,012 [INFO] reports: HTML отчет успешно создан: C:\Users\AdmiN\Desktop\курсач\задачи\Тестовые данные.errors.html
+2026-03-16 13:19:18,247 [INFO] database: Подключено к MongoDB. Уникальный индекс проверен.
+2026-03-16 13:19:18,258 [INFO] database: Соединение с MongoDB закрыто
+2026-03-16 13:20:55,942 [INFO] database: Подключено к MongoDB. Уникальный индекс проверен.
