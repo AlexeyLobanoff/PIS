@@ -263,6 +263,7 @@ def export_to_excel_combined(filepath: str, success_data: List[Any], errors_data
         if not df_success.empty:
             df_success.to_excel(writer, sheet_name='Успешные данные', index=False)
         else:
+
             pd.DataFrame([{"Сообщение": "Успешных записей нет"}]).to_excel(writer, sheet_name='Успешные данные',
                                                                            index=False)
 

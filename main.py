@@ -121,6 +121,7 @@ class ETLApp:
         self.data_frame = ctk.CTkFrame(tab_data)
         self.data_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+
         # --- Секция Парсинг ---
         parse_section = ctk.CTkFrame(self.data_frame)
         parse_section.pack(fill="x", pady=5)

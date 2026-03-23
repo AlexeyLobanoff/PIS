@@ -103,6 +103,7 @@ class MongoManager:
         if self._client is None:
             self._log("Нет подключения к MongoDB")
             return False
+
         try:
             doc = self._row_to_document(row)
             self._coll.insert_one(doc)

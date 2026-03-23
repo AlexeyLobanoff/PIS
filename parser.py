@@ -127,6 +127,7 @@ class DataProcessor:
                 raw_line=raw_line
             ), None
 
+
         except Exception as e:
             return None, f"Ошибка парсинга: {str(e)}"
 
