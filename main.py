@@ -50,6 +50,213 @@ def _run_in_thread(target):
 
 
 class ETLApp:
+    def __init__(self):
+        # Настройка графической темы (Dark Mode по умолчанию)
+        if HAS_CTK:
+            ctk.set_appearance_mode("dark")
+            ctk.set_default_color_theme("blue")
+            self.theme = "dark"
+        else:
+            self.theme = "light"  # fallback
+
+        self.root = ctk.CTk() if HAS_CTK else tk.Tk()
+
+        self.root.title("Система обработки данных ЖКХ")
+        self.root.geometry("1000x900")
+
+        # Очередь для передачи логов и команд из рабочих потоков в главный поток GUI
+        self.log_queue = queue.Queue()
+
+        # Инициализация парсера с callback-функцией для вывода логов
+        self.processor = DataProcessor(log_callback=lambda m: self.log_queue.put(("log", m)))
+
+        # Переменные для хранения временных данных и статистики
+        self._last_parsed_data = []
+        self._last_stats = {}
+        self.selected_file_path = None
+
+        self._setup_ui()
+        self.load_config()
+        self._update_loop()
+
+    def _setup_ui(self):
+        """Создание и размещение элементов управления с вкладками"""
+        pad = {"padx": 20, "pady": 10}
+
+        # Создаем Tabview
+        self.tabview = ctk.CTkTabview(self.root, width=900, height=800)
+        self.tabview.pack(fill="both", expand=True, **pad)
+
+        # --- Вкладка Настройки ---
+        tab_settings = self.tabview.add("Настройки")
+        self.settings_frame = ctk.CTkFrame(tab_settings)
+        self.settings_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Строка подключения
+        ctk.CTkLabel(self.settings_frame, text="Строка подключения MongoDB:").pack(anchor="w", padx=10, pady=5)
+        self.entry_uri = ctk.CTkEntry(self.settings_frame, width=800)
+        self.entry_uri.pack(pady=5, padx=10)
+        self.entry_uri.insert(0, "mongodb://dfyz:sDkazRHG6gNL@dfyz-mongo.thesongofsaya.dev:27017/dfyz_db?authSource=admin")
+
+        # Имя коллекции
+        ctk.CTkLabel(self.settings_frame, text="Имя таблицы (коллекции):").pack(anchor="w", padx=10, pady=5)
+        self.entry_collection = ctk.CTkEntry(self.settings_frame, width=300)
+        self.entry_collection.pack(pady=5, padx=10)
+        self.entry_collection.insert(0, "records")
+
+        # Переключатель темы
+        ctk.CTkLabel(self.settings_frame, text="Тема интерфейса:").pack(anchor="w", padx=10, pady=5)
+        self.btn_theme = ctk.CTkButton(self.settings_frame, text="Переключить на Светлую", command=self.toggle_theme, fg_color="#34495e", height=40)
+        self.btn_theme.pack(pady=10, padx=10)
+
+        # Сохранение настроек
+        self.btn_save_config = ctk.CTkButton(self.settings_frame, text="Сохранить настройки", command=self.save_config, fg_color="#27ae60", height=40)
+        self.btn_save_config.pack(pady=10, padx=10)
+
+        # Тест соединения
+        self.btn_test_conn = ctk.CTkButton(self.settings_frame, text="Тест соединения с БД", command=self.test_connection, fg_color="#e74c3c", height=40)
+        self.btn_test_conn.pack(pady=10, padx=10)
+        # --- Вкладка Данные ---
+        tab_data = self.tabview.add("Данные")
+        self.data_frame = ctk.CTkFrame(tab_data)
+        self.data_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # --- Секция Парсинг ---
+        parse_section = ctk.CTkFrame(self.data_frame)
+        parse_section.pack(fill="x", pady=5)
+
+        # Левая часть: выбор файла и парсинг
+        left_parse = ctk.CTkFrame(parse_section)
+        left_parse.pack(side="left", padx=10)
+
+        ctk.CTkLabel(left_parse, text="Парсинг данных").pack(pady=5)
+
+        # Выбор файла
+        self.btn_select_file = ctk.CTkButton(left_parse, text="Выбрать файл", command=self.select_file, fg_color="#34495e", height=40)
+        self.btn_select_file.pack(pady=5)
+        self.file_label = ctk.CTkLabel(left_parse, text="Файл не выбран")
+        self.file_label.pack(pady=5)
+
+        # Кнопка парсинга рядом
+        self.btn_parse = ctk.CTkButton(left_parse, text="Запустить парсинг", command=self.on_parse, fg_color="#27ae60", height=40)
+        self.btn_parse.pack(pady=5)
+
+        # Правая часть: остальные кнопки 2x2
+        right_parse = ctk.CTkFrame(parse_section)
+        right_parse.pack(side="right", padx=10)
+
+        self.btn_save = ctk.CTkButton(right_parse, text="Загрузить в БД", command=self.on_save, fg_color="#2980b9", height=40, width=150)
+        self.btn_export = ctk.CTkButton(right_parse, text="Экспортировать в Excel", command=self.on_export, fg_color="#e74c3c", height=40, width=150)
+        self.btn_export_csv = ctk.CTkButton(right_parse, text="Экспортировать в CSV", command=self.on_export_csv, fg_color="#27ae60", height=40, width=150)
+        self.btn_clear = ctk.CTkButton(right_parse, text="Очистить коллекцию", command=self.on_clear, fg_color="#e74c3c", height=40, width=150)
+
+        self.btn_save.grid(row=0, column=0, padx=5, pady=5)
+        self.btn_export.grid(row=0, column=1, padx=5, pady=5)
+        self.btn_export_csv.grid(row=1, column=0, padx=5, pady=5)
+        self.btn_clear.grid(row=1, column=1, padx=5, pady=5)
+
+        # Статистика
+        stats_frame = ctk.CTkFrame(self.data_frame)
+        stats_frame.pack(fill="x", pady=5)
+
+        self.stats_label = ctk.CTkLabel(stats_frame, text="Статистика: Ожидание")
+        self.stats_label.pack(side="left", padx=10)
+
+        self.btn_show_stats = ctk.CTkButton(stats_frame, text="Показать статистику", command=self.on_show_stats, fg_color="#9b59b6", height=40)
+        self.btn_show_stats.pack(side="right", padx=10)
+
+        # Поиск в правом верхнем углу
+        search_frame = ctk.CTkFrame(self.data_frame)
+        search_frame.pack(anchor="ne", pady=5)
+
+        self.search_entry = ctk.CTkEntry(search_frame, placeholder_text="Поиск по аккаунту или ФИО", width=300)
+        self.search_entry.pack(side="left", padx=5)
+        self.search_entry.bind("<Return>", lambda e: self.on_search())
+        self.search_entry.bind("<Control-v>", self.paste_to_entry)
+
+        self.btn_search = ctk.CTkButton(search_frame, text="🔍", command=self.on_search, fg_color="#f39c12", width=50, height=40)
+        self.btn_search.pack(side="right")
+
+        # Просмотр спарсенных данных
+        data_section = ctk.CTkFrame(self.data_frame)
+        data_section.pack(fill="both", expand=True, pady=5)
+
+        header_data = ctk.CTkFrame(data_section)
+        header_data.pack(fill="x")
+
+        ctk.CTkLabel(header_data, text="Спарсенные данные:").pack(side="left", pady=5)
+
+        ctk.CTkLabel(header_data, text="Показывать строк:").pack(side="right", padx=5)
+        self.display_limit_entry = ctk.CTkEntry(header_data, placeholder_text="50", width=50)
+        self.display_limit_entry.pack(side="right")
+        self.display_limit_entry.insert(0, "50")
+
+        # Treeview для данных
+        # --- Treeview для данных ---
+        # Добавляем колонку "Услуги", чтобы видеть детализацию
+        columns = ("№", "Аккаунт", "ФИО", "Адрес", "Период", "Сумма", "Услуги")
+        self.data_tree = ttk.Treeview(data_section, columns=columns, show="headings", height=15)
+
+        # Настройка заголовков и ширины колонок
+        self.data_tree.heading("№", text="№")
+        self.data_tree.column("№", width=40, anchor="center")
+
+        self.data_tree.heading("Аккаунт", text="Лицевой счет")
+        self.data_tree.column("Аккаунт", width=100, anchor="center")
+
+        self.data_tree.heading("ФИО", text="ФИО Плательщика")
+        self.data_tree.column("ФИО", width=200, anchor="w")
+
+        self.data_tree.heading("Адрес", text="Адрес")
+        self.data_tree.column("Адрес", width=250, anchor="w")
+
+        self.data_tree.heading("Период", text="Дата")
+        self.data_tree.column("Период", width=80, anchor="center")
+
+        self.data_tree.heading("Сумма", text="Итого (руб)")
+        self.data_tree.column("Сумма", width=90, anchor="e")  # Числа лучше ровнять по правому краю
+
+        self.data_tree.heading("Услуги", text="Детализация услуг")
+        self.data_tree.column("Услуги", width=300, anchor="w")
+
+        self.data_tree.pack(fill="both", expand=True, side="left", pady=10)
+        # Scrollbars
+        v_scroll = ttk.Scrollbar(data_section, orient="vertical", command=self.data_tree.yview)
+        self.data_tree.configure(yscrollcommand=v_scroll.set)
+        v_scroll.pack(side="right", fill="y")
+
+        # Контекстное меню
+        self.tree_menu = tk.Menu(self.data_tree, tearoff=0)
+        self.tree_menu.add_command(label="Копировать", command=self.copy_tree)
+        self.tree_menu.add_command(label="Выделить все", command=self.select_all_tree)
+        self.data_tree.bind("<Button-3>", self.show_tree_menu)
+        self.data_tree.bind("<Control-c>", self.copy_tree)
+        self.data_tree.bind("<Control-a>", self.select_all_tree)
+
+        # Прогресс-бары
+        progress_frame = ctk.CTkFrame(self.data_frame)
+        progress_frame.pack(fill="x", pady=5)
+
+        self.progress_db = ctk.CTkProgressBar(progress_frame, width=300)
+        self.progress_db.pack(side="left", padx=10)
+        self.progress_db.set(0)
+        ctk.CTkLabel(progress_frame, text="Загрузка в БД").pack(side="left")
+
+        self.progress_reports = ctk.CTkProgressBar(progress_frame, width=300)
+        self.progress_reports.pack(side="right", padx=10)
+        self.progress_reports.set(0)
+        ctk.CTkLabel(progress_frame, text="Экспорт").pack(side="right")
+
+        # --- Вкладка Логи ---
+        tab_logs = self.tabview.add("Логи")
+        self.logs_frame = ctk.CTkFrame(tab_logs)
+        self.logs_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Окно вывода логов
+        self.log_area = scrolledtext.ScrolledText(self.logs_frame, bg="#1a1a1a", fg="#00ff00", font=("Consolas", 11))
+        self.log_area.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.btns = [self.btn_parse, self.btn_show_stats, self.btn_search, self.btn_save, self.btn_clear, self.btn_export, self.btn_export_csv]
 
     def show_tree_menu(self, event):
         self.tree_menu.post(event.x_root, event.y_root)
