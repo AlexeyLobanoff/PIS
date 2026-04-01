@@ -1,201 +1,161 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль парсинга и валидации текстовых данных.
-Формат: разделитель ";", поля 1-4 фиксированные, поле 5 вариативное.
-Сценарий А: 1 поле (Сумма). Сценарий Б: группы по 3 (Сумма, Прибор, Показание).
-"""
-
-from __future__ import annotations
-
+import re
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple, List, Dict, Any
 
 
 @dataclass
 class ParsedRow:
-    """Результат успешного разбора строки."""
+    """Результат разбора строки: период теперь как День и Месяц."""
     account: int
     full_name: str
     address: str
-    period: int
-    entries: list  # list of dicts: {"amount", "device", "reading"} (device/reading могут быть None)
+    period_raw: int  # Исходное число (519)
+    period_display: str  # Красивый формат (19 Мая)
+    period_sort: str  # Для сортировки в БД (05-19)
+    total_amount: float
+    entries: List[Dict[str, Any]]
     raw_line: str = ""
 
 
+def _format_period_as_date(period_int: int) -> Tuple[str, str]:
+    """
+    Преобразует 519 в ('05-19', '19 Мая').
+    Логика: последние 2 цифры - день, остальное - месяц.
+    """
+    months = [
+        "", "Января", "Февраля", "Марта", "Апреля", "Мая", "Июня",
+        "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"
+    ]
+    try:
+        s = str(period_int)
+        if len(s) < 2:
+            return "00-00", "Ошибка"
+
+        # 519: день = 19, месяц = 5
+        day = int(s[-2:])
+        month_num = int(s[:-2]) if len(s) > 2 else 0  # Если вдруг придет просто "19", месяца нет
+
+        if month_num < 1 or month_num > 12:
+            return f"00-{day:02d}", f"{day} (Месяц?) "
+
+        month_name = months[month_num]
+        display = f"{day} {month_name}"
+        sort_key = f"{month_num:02d}-{day:02d}"
+
+        return sort_key, display
+    except Exception:
+        return "00-00", "Ошибка формата"
+
+
 def _normalize_number(s: str) -> str:
-    """Замена запятой на точку в числовых значениях."""
-    if not s:
-        return s
+    if not s: return s
     return s.strip().replace(",", ".")
 
 
-def _parse_int(s: str) -> Optional[int]:
-    """Парсинг int."""
-    s = s.strip()
-    try:
-        return int(s)
-    except ValueError:
-        return None
-
-
 def _parse_float(s: str) -> Optional[float]:
-    """Парсинг float с заменой запятой на точку."""
     s = _normalize_number(s)
     try:
         return float(s)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
-
-
-def validate_address(address: str) -> bool:
-    """
-    Адрес должен содержать минимум 3 сегмента (город/населённый пункт, улица, дом),
-    разделённые запятой.
-    """
-    if not address or not address.strip():
-        return False
-    segments = [seg.strip() for seg in address.split(",") if seg.strip()]
-    return len(segments) >= 3
-
-
-def parse_variable_part(variable_fields: list) -> Optional[list]:
-    """
-    Парсинг вариативной части.
-    Сценарий А: ровно 1 поле — Сумма.
-    Сценарий Б: количество полей кратно 3 — группы (Сумма, Название прибора, Показание).
-    Возвращает список записей или None при невалидном количестве полей.
-    """
-    if not variable_fields:
-        return None
-    n = len(variable_fields)
-    if n == 1:
-        amount = _parse_float(variable_fields[0])
-        if amount is None:
-            return None
-        return [{"amount": amount, "device": None, "reading": None}]
-    if n % 3 != 0:
-        return None
-    entries = []
-    for i in range(0, n, 3):
-        amount = _parse_float(variable_fields[i])
-        device = variable_fields[i + 1].strip() if i + 1 < n else ""
-        reading = _parse_float(variable_fields[i + 2])
-        if amount is None or reading is None:
-            return None
-        entries.append({"amount": amount, "device": device, "reading": reading})
-    return entries
 
 
 class DataProcessor:
-    """
-    Построчное чтение файла и разбор строк в заданном формате.
-    Поддерживает кодировки utf-8 и cp1251.
-    """
-
     def __init__(self, log_callback: Optional[Callable[[str], None]] = None):
         self.log_callback = log_callback or (lambda msg: None)
 
-    def _log(self, msg: str) -> None:
-        self.log_callback(msg)
+    def process_line(self, line: str, line_num: int) -> Tuple[Optional[ParsedRow], Optional[str]]:
+        raw_line = line.strip()
+        if not raw_line: return None, None
 
-    def process_line(self, line: str, line_num: int) -> tuple[ParsedRow | None, str | None]:
-        """
-        Обрабатывает одну строку.
-        Возвращает (ParsedRow, None) при успехе или (None, "причина ошибки") при ошибке.
-        """
-        line = line.strip()
-        if not line:
-            return None, "Пустая строка"
-
-        parts = line.split(";")
-        if parts and parts[-1] == "":
+        # Очистка от точки с запятой в конце и разбивка
+        parts = [p.strip() for p in raw_line.split(";")]
+        if parts and not parts[-1]:
             parts = parts[:-1]
 
         if len(parts) < 5:
-            return None, f"Недостаточно полей (ожидается минимум 5, получено {len(parts)})"
+            return None, f"Недостаточно полей: {len(parts)}"
 
-        account_str = parts[0].strip()
-        full_name = parts[1].strip()
-        address = parts[2].strip()
-        period_str = parts[3].strip()
-        variable_fields = [p.strip() for p in parts[4:] if p is not None]
+        try:
+            # 1. Лицевой счет
+            acc = int(parts[0])
 
-        account = _parse_int(account_str)
-        if account is None:
-            return None, f"Лицевой счёт должен быть целым числом: '{account_str}'"
+            # 2. ФИО
+            name = parts[1]
 
-        if not full_name:
-            return None, "ФИО не может быть пустым"
+            # 3. Адрес
+            addr = parts[2]
 
-        if not validate_address(address):
-            return None, (
-                f"Адрес должен содержать минимум 3 сегмента (населённый пункт, улица, дом): "
-                f"'{address[:50]}{'...' if len(address) > 50 else ''}'"
-            )
+            # 4. Период (519 -> 19 Мая)
+            period_match = re.search(r'\d+', parts[3])
+            if period_match is None:
+                return None, f"Нет числа в поле периода: {parts[3]}"
+            period_val = int(period_match.group())
+            sort_key, human_date = _format_period_as_date(period_val)
 
-        period = _parse_int(period_str)
-        if period is None:
-            return None, f"Период должен быть целым числом: '{period_str}'"
+            # 5. Вариативная часть
+            # Первое поле - всегда общая сумма
+            total = _parse_float(parts[4])
+            if total is None:
+                return None, f"Ошибка в сумме: {parts[4]}"
 
-        entries = parse_variable_part(variable_fields)
-        if entries is None:
-            n = len(variable_fields)
-            return None, (
-                f"Вариативная часть: ожидается 1 поле (сумма) или число полей кратное 3 "
-                f"(сумма, прибор, показание), получено полей: {n}"
-            )
+            # Пары: Услуга + Сумма
+            services = []
+            pairs_part = parts[5:]
 
-        return (
-            ParsedRow(
-                account=account,
-                full_name=full_name,
-                address=address,
-                period=period,
-                entries=entries,
-                raw_line=line,
-            ),
-            None,
-        )
+            # Если полей услуг нечетное количество, проверяем на пустой хвост
+            if len(pairs_part) % 2 != 0:
+                if pairs_part and not pairs_part[-1]:
+                    pairs_part = pairs_part[:-1]
+                else:
+                    return None, f"Непарные поля услуг (всего {len(pairs_part)})"
 
-    def process_file(
-        self,
-        filepath: str,
-        progress_callback: Optional[Callable[[int, int], None]] = None,
-    ) -> tuple[list, list]:
-        """
-        Читает файл построчно, кодировки utf-8 и cp1251.
-        Возвращает (список успешных ParsedRow, список (номер_строки, причина_ошибки, исходная_строка)).
-        """
-        successful = []
-        errors = []
-        encodings = ["utf-8", "cp1251"]
+            for i in range(0, len(pairs_part), 2):
+                srv_name = pairs_part[i]
+                srv_sum = _parse_float(pairs_part[i + 1])
+                if srv_name and srv_sum is not None:
+                    # Используем "service" вместо "device" для ясности
+                    services.append({"Счёт и услуга": srv_name, "Сумма": srv_sum})
+
+            return ParsedRow(
+                account=acc,
+                full_name=name,
+                address=addr,
+                period_raw=period_val,
+                period_display=human_date,
+                period_sort=sort_key,
+                total_amount=total,
+                entries=services,
+                raw_line=raw_line
+            ), None
+
+        except Exception as e:
+            return None, f"Ошибка парсинга: {str(e)}"
+
+    def process_file(self, filepath: str, progress_callback=None) -> Tuple[List[ParsedRow], List[Tuple]]:
+        successful, errors = [], []
         lines = []
-        used_encoding = None
 
-        for encoding in encodings:
+        for enc in ["utf-8", "cp1251", "utf-8-sig"]:
             try:
-                with open(filepath, "r", encoding=encoding) as f:
+                with open(filepath, "r", encoding=enc) as f:
                     lines = f.readlines()
-                used_encoding = encoding
-                self._log(f"Файл прочитан в кодировке {encoding}")
                 break
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, IOError):
                 continue
-            except OSError as e:
-                self._log(f"Ошибка чтения файла: {e}")
-                return [], [(0, str(e))]
 
-            self._log("Не удалось прочитать файл (поддерживаются utf-8, cp1251)")
-            return [], [(0, "Ошибка кодировки файла")]
+        if not lines: return [], [(0, "Файл пуст или не читается", "")]
 
         total = len(lines)
         for i, line in enumerate(lines, start=1):
             row, err = self.process_line(line, i)
             if err:
                 errors.append((i, err, line.strip()))
-            else:
+            elif row:
                 successful.append(row)
-            if progress_callback and total and (i % 100 == 0 or i == total):
+
+            if progress_callback and i % 100 == 0:
                 progress_callback(i, total)
 
         return successful, errors

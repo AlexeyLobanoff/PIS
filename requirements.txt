@@ -4,3 +4,4 @@ openpyxl>=3.1
 xlsxwriter>=3.2
 customtkinter>=5.2
 matplotlib>=3.8
+python-dotenv>=1.0
