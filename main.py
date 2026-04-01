@@ -1,21 +1,50 @@
 import json
 import logging
+import os
 import queue
 import threading
 import tkinter as tk
-from reports import generate_html_errors_report
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext
 import tkinter.ttk as ttk
-from reports import export_to_excel_combined
+from dotenv import load_dotenv
+
+load_dotenv()
+print("""
+    ·▄▄▄▄  ▄▄▄ . ▌ ▐·▄▄▄ .▄▄▌         ▄▄▄·▄▄▄ .·▄▄▄▄      ▄▄▄▄·  ▄· ▄▌      
+    ██▪ ██ ▀▄.▀·▪█·█▌▀▄.▀·██•  ▪     ▐█ ▄█▀▄.▀·██▪ ██     ▐█ ▀█▪▐█▪██▌      
+    ▐█· ▐█▌▐▀▀▪▄▐█▐█•▐▀▀▪▄██▪   ▄█▀▄  ██▀·▐▀▀▪▄▐█· ▐█▌    ▐█▀▀█▄▐█▌▐█▪      
+    ██. ██ ▐█▄▄▌ ███ ▐█▄▄▌▐█▌▐▌▐█▌.▐▌▐█▪·•▐█▄▄▌██. ██     ██▄▪▐█ ▐█▀·.      
+    ▀▀▀▀▀•  ▀▀▀ . ▀   ▀▀▀ .▀▀▀  ▀█▄▀▪.▀    ▀▀▀ ▀▀▀▀▀•     ·▀▀▀▀   ▀ •       
+    ·▄▄▄▄  ·▄▄▄ ▄· ▄▌·▄▄▄▄•    ▐▄• ▄      ▄▄▄· ▄▄▌   ▄· ▄▌.▄▄ · .▄▄ ·  ▄▄▄· 
+    ██▪ ██ ▐▄▄·▐█▪██▌▪▀·.█▌     █▌█▌▪    ▐█ ▀█ ██•  ▐█▪██▌▐█ ▀. ▐█ ▀. ▐█ ▀█ 
+    ▐█· ▐█▌██▪ ▐█▌▐█▪▄█▀▀▀•     ·██·     ▄█▀▀█ ██▪  ▐█▌▐█▪▄▀▀▀█▄▄▀▀▀█▄▄█▀▀█ 
+    ██. ██ ██▌. ▐█▀·.█▌▪▄█▀    ▪▐█·█▌    ▐█ ▪▐▌▐█▌▐▌ ▐█▀·.▐█▄▪▐█▐█▄▪▐█▐█ ▪▐▌
+    ▀▀▀▀▀• ▀▀▀   ▀ • ·▀▀▀ •    •▀▀ ▀▀     ▀  ▀ .▀▀▀   ▀ •  ▀▀▀▀  ▀▀▀▀  ▀  ▀ 
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+     ▄▄▄·▪  .▄▄ ·      ▄▄▄·▄▄▄         ▐▄▄▄▄▄▄ . ▄▄· ▄▄▄▄▄                  
+    ▐█ ▄███ ▐█ ▀.     ▐█ ▄█▀▄ █·▪       ·██▀▄.▀·▐█ ▌▪•██                    
+     ██▀·▐█·▄▀▀▀█▄     ██▀·▐▀▀▄  ▄█▀▄ ▪▄ ██▐▀▀▪▄██ ▄▄ ▐█.▪                  
+    ▐█▪·•▐█▌▐█▄▪▐█    ▐█▪·•▐█•█▌▐█▌.▐▌▐▌▐█▌▐█▄▄▌▐███▌ ▐█▌·                  
+    .▀   ▀▀▀ ▀▀▀▀     .▀   .▀  ▀ ▀█▄▀▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀                   
+    """)
+
+from reports import generate_html_errors_report, export_to_excel_combined
+
 try:
     import winsound
+
     HAS_SOUND = True
 except ImportError:
     HAS_SOUND = False
 
 try:
     import matplotlib.pyplot as plt
+
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -37,7 +66,7 @@ except ImportError:
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.FileHandler("etl_app.log", encoding="utf-8")],
+    handlers=[logging.FileHandler(os.getenv("LOG_FILE", "etl_app.log"), encoding="utf-8")],
 )
 logger = logging.getLogger(__name__)
 
@@ -96,25 +125,28 @@ class ETLApp:
         ctk.CTkLabel(self.settings_frame, text="Строка подключения MongoDB:").pack(anchor="w", padx=10, pady=5)
         self.entry_uri = ctk.CTkEntry(self.settings_frame, width=800)
         self.entry_uri.pack(pady=5, padx=10)
-        self.entry_uri.insert(0, "mongodb://dfyz:sDkazRHG6gNL@dfyz-mongo.thesongofsaya.dev:27017/dfyz_db?authSource=admin")
+        self.entry_uri.insert(0, os.getenv("MONGO_URI", ""))
 
         # Имя коллекции
         ctk.CTkLabel(self.settings_frame, text="Имя таблицы (коллекции):").pack(anchor="w", padx=10, pady=5)
         self.entry_collection = ctk.CTkEntry(self.settings_frame, width=300)
         self.entry_collection.pack(pady=5, padx=10)
-        self.entry_collection.insert(0, "records")
+        self.entry_collection.insert(0, os.getenv("MONGO_COLLECTION", "records"))
 
         # Переключатель темы
         ctk.CTkLabel(self.settings_frame, text="Тема интерфейса:").pack(anchor="w", padx=10, pady=5)
-        self.btn_theme = ctk.CTkButton(self.settings_frame, text="Переключить на Светлую", command=self.toggle_theme, fg_color="#34495e", height=40)
+        self.btn_theme = ctk.CTkButton(self.settings_frame, text="Переключить на Светлую", command=self.toggle_theme,
+                                       fg_color="#34495e", height=40)
         self.btn_theme.pack(pady=10, padx=10)
 
         # Сохранение настроек
-        self.btn_save_config = ctk.CTkButton(self.settings_frame, text="Сохранить настройки", command=self.save_config, fg_color="#27ae60", height=40)
+        self.btn_save_config = ctk.CTkButton(self.settings_frame, text="Сохранить настройки", command=self.save_config,
+                                             fg_color="#27ae60", height=40)
         self.btn_save_config.pack(pady=10, padx=10)
 
         # Тест соединения
-        self.btn_test_conn = ctk.CTkButton(self.settings_frame, text="Тест соединения с БД", command=self.test_connection, fg_color="#e74c3c", height=40)
+        self.btn_test_conn = ctk.CTkButton(self.settings_frame, text="Тест соединения с БД",
+                                           command=self.test_connection, fg_color="#e74c3c", height=40)
         self.btn_test_conn.pack(pady=10, padx=10)
         # --- Вкладка Данные ---
         tab_data = self.tabview.add("Данные")
@@ -132,23 +164,29 @@ class ETLApp:
         ctk.CTkLabel(left_parse, text="Парсинг данных").pack(pady=5)
 
         # Выбор файла
-        self.btn_select_file = ctk.CTkButton(left_parse, text="Выбрать файл", command=self.select_file, fg_color="#34495e", height=40)
+        self.btn_select_file = ctk.CTkButton(left_parse, text="Выбрать файл", command=self.select_file,
+                                             fg_color="#34495e", height=40)
         self.btn_select_file.pack(pady=5)
         self.file_label = ctk.CTkLabel(left_parse, text="Файл не выбран")
         self.file_label.pack(pady=5)
 
         # Кнопка парсинга рядом
-        self.btn_parse = ctk.CTkButton(left_parse, text="Запустить парсинг", command=self.on_parse, fg_color="#27ae60", height=40)
+        self.btn_parse = ctk.CTkButton(left_parse, text="Запустить парсинг", command=self.on_parse, fg_color="#27ae60",
+                                       height=40)
         self.btn_parse.pack(pady=5)
 
         # Правая часть: остальные кнопки 2x2
         right_parse = ctk.CTkFrame(parse_section)
         right_parse.pack(side="right", padx=10)
 
-        self.btn_save = ctk.CTkButton(right_parse, text="Загрузить в БД", command=self.on_save, fg_color="#2980b9", height=40, width=150)
-        self.btn_export = ctk.CTkButton(right_parse, text="Экспортировать в Excel", command=self.on_export, fg_color="#e74c3c", height=40, width=150)
-        self.btn_export_csv = ctk.CTkButton(right_parse, text="Экспортировать в CSV", command=self.on_export_csv, fg_color="#27ae60", height=40, width=150)
-        self.btn_clear = ctk.CTkButton(right_parse, text="Очистить коллекцию", command=self.on_clear, fg_color="#e74c3c", height=40, width=150)
+        self.btn_save = ctk.CTkButton(right_parse, text="Загрузить в БД", command=self.on_save, fg_color="#2980b9",
+                                      height=40, width=150)
+        self.btn_export = ctk.CTkButton(right_parse, text="Экспортировать в Excel", command=self.on_export,
+                                        fg_color="#e74c3c", height=40, width=150)
+        self.btn_export_csv = ctk.CTkButton(right_parse, text="Экспортировать в CSV", command=self.on_export_csv,
+                                            fg_color="#27ae60", height=40, width=150)
+        self.btn_clear = ctk.CTkButton(right_parse, text="Очистить коллекцию", command=self.on_clear,
+                                       fg_color="#e74c3c", height=40, width=150)
 
         self.btn_save.grid(row=0, column=0, padx=5, pady=5)
         self.btn_export.grid(row=0, column=1, padx=5, pady=5)
@@ -162,7 +200,8 @@ class ETLApp:
         self.stats_label = ctk.CTkLabel(stats_frame, text="Статистика: Ожидание")
         self.stats_label.pack(side="left", padx=10)
 
-        self.btn_show_stats = ctk.CTkButton(stats_frame, text="Показать статистику", command=self.on_show_stats, fg_color="#9b59b6", height=40)
+        self.btn_show_stats = ctk.CTkButton(stats_frame, text="Показать статистику", command=self.on_show_stats,
+                                            fg_color="#9b59b6", height=40)
         self.btn_show_stats.pack(side="right", padx=10)
 
         # Поиск в правом верхнем углу
@@ -174,7 +213,8 @@ class ETLApp:
         self.search_entry.bind("<Return>", lambda e: self.on_search())
         self.search_entry.bind("<Control-v>", self.paste_to_entry)
 
-        self.btn_search = ctk.CTkButton(search_frame, text="🔍", command=self.on_search, fg_color="#f39c12", width=50, height=40)
+        self.btn_search = ctk.CTkButton(search_frame, text="🔍", command=self.on_search, fg_color="#f39c12", width=50,
+                                        height=40)
         self.btn_search.pack(side="right")
 
         # Просмотр спарсенных данных
@@ -256,7 +296,8 @@ class ETLApp:
         self.log_area = scrolledtext.ScrolledText(self.logs_frame, bg="#1a1a1a", fg="#00ff00", font=("Consolas", 11))
         self.log_area.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.btns = [self.btn_parse, self.btn_show_stats, self.btn_search, self.btn_save, self.btn_clear, self.btn_export, self.btn_export_csv]
+        self.btns = [self.btn_parse, self.btn_show_stats, self.btn_search, self.btn_save, self.btn_clear,
+                     self.btn_export, self.btn_export_csv]
 
     def show_tree_menu(self, event):
         self.tree_menu.post(event.x_root, event.y_root)
@@ -298,6 +339,8 @@ class ETLApp:
                         self.progress_db.set(val) if HAS_CTK else self.progress_db.configure(value=val * 100)
                     elif op == "export":
                         self.progress_reports.set(val) if HAS_CTK else self.progress_reports.configure(value=val * 100)
+                elif rtype == "stats":
+                    self.stats_label.configure(text=data)
                 elif rtype == "notify":
                     messagebox.showinfo("Уведомление", data)
         except queue.Empty:
@@ -306,7 +349,7 @@ class ETLApp:
 
     def load_config(self):
         """Загрузка настроек из config.json"""
-        config_path = Path("config.json")
+        config_path = Path(os.getenv("CONFIG_FILE", "config.json"))
         if config_path.exists():
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
@@ -336,7 +379,7 @@ class ETLApp:
             "theme": self.theme
         }
         try:
-            with open("config.json", "w", encoding="utf-8") as f:
+            with open(os.getenv("CONFIG_FILE", "config.json"), "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
             self._log("Настройки сохранены в config.json")
         except Exception as e:
@@ -379,6 +422,7 @@ class ETLApp:
                 ctk.set_appearance_mode("dark")
                 self.theme = "dark"
                 self.btn_theme.configure(text="Переключить на Светлую")
+
     def select_file(self):
         """Выбор файла для парсинга"""
         path = filedialog.askopenfilename(filetypes=[("Text", "*.txt"), ("Все файлы", "*.*")])
@@ -409,8 +453,10 @@ class ETLApp:
                     generate_html_errors_report(path, errors)
                     self._log(f"Найдены ошибки ({len(errors)}). Отчеты созданы в папке с файлом.")
                 self._log(f"Успешно обработано строк: {len(success_rows)}")
-                self.log_queue.put(("stats", f"Обработано: {self._last_stats['processed']}, Успешно: {self._last_stats['success']}, Ошибок: {self._last_stats['errors']}"))
-                self.log_queue.put(("notify", f"Парсинг завершен! Обработано: {self._last_stats['processed']}, Успешно: {self._last_stats['success']}, Ошибок: {self._last_stats['errors']}"))
+                self.log_queue.put(("stats",
+                                    f"Обработано: {self._last_stats['processed']}, Успешно: {self._last_stats['success']}, Ошибок: {self._last_stats['errors']}"))
+                self.log_queue.put(("notify",
+                                    f"Парсинг завершен! Обработано: {self._last_stats['processed']}, Успешно: {self._last_stats['success']}, Ошибок: {self._last_stats['errors']}"))
             finally:
                 self.log_queue.put(("state", "normal"))
 
@@ -427,6 +473,8 @@ class ETLApp:
         try:
             limit_val = self.display_limit_entry.get().strip()
             limit = int(limit_val) if limit_val else 50
+            if limit <= 0:
+                raise ValueError
         except ValueError:
             limit = 50
             self._log("Ошибка: Некорректный лимит, использую 50 строк по умолчанию.")
@@ -465,13 +513,15 @@ class ETLApp:
             ))
 
         self._log(f"Отображено {len(display_rows)} из {len(rows)} записей.")
+
     def on_search(self):
         """Поиск в спарсенных данных"""
         query = self.search_entry.get().strip().lower()
         if not self._last_parsed_data:
             messagebox.showinfo("Информация", "Нет данных для поиска. Сначала распарсите файл.")
             return
-        filtered = [row for row in self._last_parsed_data if query in str(row.account).lower() or query in row.full_name.lower()]
+        filtered = [row for row in self._last_parsed_data if
+                    query in str(row.account).lower() or query in row.full_name.lower()]
         self.populate_tree(filtered)
         self._log(f"Найдено {len(filtered)} записей по запросу '{query}'")
 
@@ -527,7 +577,8 @@ class ETLApp:
         uri = self.entry_uri.get().strip()
         coll_name = self.entry_collection.get().strip() or "records"
 
-        result = messagebox.askyesno("Подтверждение", f"Вы уверены, что хотите очистить коллекцию '{coll_name}'? Все данные будут удалены!")
+        result = messagebox.askyesno("Подтверждение",
+                                     f"Вы уверены, что хотите очистить коллекцию '{coll_name}'? Все данные будут удалены!")
         if not result:
             return
 
@@ -550,9 +601,8 @@ class ETLApp:
     def on_export(self):
         """Экспорт результатов последнего парсинга в Excel (Успех + Ошибки)"""
         errors_data = getattr(self, '_last_parsed_errors', [])
-        if errors_data:
-            # Передаем путь к исходному файлу, отчет создастся рядом
-            generate_html_errors_report(self.file_label.cget("text"), errors_data)
+        if errors_data and self.selected_file_path:
+            generate_html_errors_report(self.selected_file_path, errors_data)
         # Проверяем, запускал ли пользователь парсинг
         if not hasattr(self, '_last_parsed_data') and not hasattr(self, '_last_parsed_errors'):
             messagebox.showwarning("Внимание", "Сначала выберите файл и запустите парсинг!")
@@ -614,7 +664,8 @@ class ETLApp:
                 mongo = MongoManager(uri, collection=coll_name, log_callback=self._log)
                 if mongo.connect():
                     self._log(f"Извлечение данных из '{coll_name}' для CSV отчета...")
-                    docs = mongo.get_all_documents(progress_callback=lambda c, t: self.log_queue.put(("progress", (c, t, "export"))))
+                    docs = mongo.get_all_documents(
+                        progress_callback=lambda c, t: self.log_queue.put(("progress", (c, t, "export"))))
                     mongo.disconnect()
 
                     if not docs:
@@ -622,7 +673,8 @@ class ETLApp:
                         return
 
                     if len(docs) > 10000:
-                        self._log(f"Предупреждение: Экспорт {len(docs)} записей может занять время. Пожалуйста, подождите...")
+                        self._log(
+                            f"Предупреждение: Экспорт {len(docs)} записей может занять время. Пожалуйста, подождите...")
 
                     export_to_csv(final_path, docs)
                     self._log(f"CSV-отчет успешно создан: {final_path}")

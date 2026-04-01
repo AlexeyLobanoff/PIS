@@ -4,14 +4,22 @@
 """
 
 import logging
+import os
 from typing import Any, Callable, Optional
 
+from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from datetime import datetime
 from parser import ParsedRow
 
+load_dotenv()
+
 logger = logging.getLogger(__name__)
+
+_TIMEOUT_MS = int(os.getenv("MONGO_TIMEOUT_MS", "5000"))
+_INSERT_BATCH_SIZE = int(os.getenv("DB_INSERT_BATCH_SIZE", "5000"))
+_QUERY_BATCH_SIZE = int(os.getenv("DB_QUERY_BATCH_SIZE", "1000"))
 
 
 class MongoManager:
@@ -21,11 +29,11 @@ class MongoManager:
     """
 
     def __init__(
-        self,
-        uri: str,
-        database: str = "etl_db",
-        collection: str = "records",
-        log_callback: Optional[Callable[[str], None]] = None,
+            self,
+            uri: str,
+            database: str = os.getenv("MONGO_DATABASE", "etl_db"),
+            collection: str = os.getenv("MONGO_COLLECTION", "records"),
+            log_callback: Optional[Callable[[str], None]] = None,
     ):
         self.uri = uri
         self.database_name = database
@@ -41,7 +49,7 @@ class MongoManager:
 
     def connect(self) -> bool:
         try:
-            self._client = MongoClient(self.uri, serverSelectionTimeoutMS=5000)
+            self._client = MongoClient(self.uri, serverSelectionTimeoutMS=_TIMEOUT_MS)
             self._client.admin.command("ping")
             self._db = self._client[self.database_name]
             self._coll = self._db[self.collection_name]
@@ -116,10 +124,10 @@ class MongoManager:
             return False
 
     def insert_many(
-        self,
-        rows: list,
-        progress_callback: Optional[Callable[[int, int], None]] = None,
-        batch_size: int = 5000,
+            self,
+            rows: list,
+            progress_callback: Optional[Callable[[int, int], None]] = None,
+            batch_size: int = _INSERT_BATCH_SIZE,
     ) -> tuple[int, int]:
         """
         Вставляет список ParsedRow в коллекцию батчами (insert_many).
@@ -132,7 +140,7 @@ class MongoManager:
         inserted = 0
         try:
             for start in range(0, total, batch_size):
-                chunk = rows[start : start + batch_size]
+                chunk = rows[start: start + batch_size]
                 docs = [self._row_to_document(row) for row in chunk]
                 self._coll.insert_many(docs)
                 inserted += len(docs)
@@ -159,13 +167,13 @@ class MongoManager:
             return []
         try:
             total = self._coll.count_documents({})
-            cursor = self._coll.find({}, {"_id": 0}).batch_size(1000)
+            cursor = self._coll.find({}, {"_id": 0}).batch_size(_QUERY_BATCH_SIZE)
             docs = []
             current = 0
             for doc in cursor:
                 docs.append(doc)
                 current += 1
-                if progress_callback and total > 0 and (current % 1000 == 0 or current == total):
+                if progress_callback and total > 0 and (current % _QUERY_BATCH_SIZE == 0 or current == total):
                     progress_callback(current, total)
             return docs
         except Exception as e:

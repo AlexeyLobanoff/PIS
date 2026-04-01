@@ -3,14 +3,15 @@
 Модуль отчётности: подробный текстовый отчет и экспорт в Excel (.xls) с диаграммой.
 """
 
+import html
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple
+
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.chart import PieChart, Reference
-import pandas as pd
-from typing import List, Tuple, Any
+
 logger = logging.getLogger(__name__)
 
 
@@ -142,7 +143,7 @@ def generate_html_errors_report(filepath: str, errors: List[Tuple]) -> None:
             f.write("</style>\n</head>\n<body>\n")
 
             f.write(f"<h1>Отчет об ошибках парсинга</h1>\n")
-            f.write(f"<p><strong>Файл:</strong> {path.name}</p>\n")
+            f.write(f"<p><strong>Файл:</strong> {html.escape(path.name)}</p>\n")
             f.write(f"<p><strong>Всего ошибок:</strong> {len(errors)}</p>\n")
             f.write("<p><small><i>Подсказка: нажмите на заголовок столбца для сортировки</i></small></p>\n")
 
@@ -159,9 +160,9 @@ def generate_html_errors_report(filepath: str, errors: List[Tuple]) -> None:
                 # Берем исходную строку (она обычно 3-м элементом в кортеже ошибок)
                 raw_data = err[2] if len(err) > 2 else "Нет данных"
 
-                f.write(f"<tr><td>{line_num}</td>")
-                f.write(f"<td class='error-msg'>{reason}</td>")
-                f.write(f"<td><code>{raw_data}</code></td></tr>\n")
+                f.write(f"<tr><td>{html.escape(str(line_num))}</td>")
+                f.write(f"<td class='error-msg'>{html.escape(str(reason))}</td>")
+                f.write(f"<td><code>{html.escape(str(raw_data))}</code></td></tr>\n")
 
             f.write("</tbody></table>\n")
 
@@ -215,6 +216,7 @@ def generate_html_errors_report(filepath: str, errors: List[Tuple]) -> None:
         logger.info(f"HTML отчет успешно создан: {report_path}")
     except Exception as e:
         logger.error(f"Не удалось создать HTML отчет: {e}")
+
 
 def export_to_excel_combined(filepath: str, success_data: List[Any], errors_data: List[Tuple[int, str, str]]) -> None:
     """
@@ -272,6 +274,7 @@ def export_to_excel_combined(filepath: str, success_data: List[Any], errors_data
             pd.DataFrame([{"Сообщение": "Ошибок не найдено (Всё идеально!)"}]).to_excel(writer,
                                                                                         sheet_name='Ошибки парсинга',
                                                                                         index=False)
+
 
 def export_to_csv(
         output_path: str,

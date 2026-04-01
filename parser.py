@@ -44,7 +44,7 @@ def _format_period_as_date(period_int: int) -> Tuple[str, str]:
         sort_key = f"{month_num:02d}-{day:02d}"
 
         return sort_key, display
-    except:
+    except Exception:
         return "00-00", "Ошибка формата"
 
 
@@ -57,7 +57,7 @@ def _parse_float(s: str) -> Optional[float]:
     s = _normalize_number(s)
     try:
         return float(s)
-    except:
+    except (ValueError, TypeError):
         return None
 
 
@@ -88,7 +88,10 @@ class DataProcessor:
             addr = parts[2]
 
             # 4. Период (519 -> 19 Мая)
-            period_val = int(re.search(r'\d+', parts[3]).group())
+            period_match = re.search(r'\d+', parts[3])
+            if period_match is None:
+                return None, f"Нет числа в поле периода: {parts[3]}"
+            period_val = int(period_match.group())
             sort_key, human_date = _format_period_as_date(period_val)
 
             # 5. Вариативная часть
@@ -139,7 +142,7 @@ class DataProcessor:
                 with open(filepath, "r", encoding=enc) as f:
                     lines = f.readlines()
                 break
-            except:
+            except (UnicodeDecodeError, IOError):
                 continue
 
         if not lines: return [], [(0, "Файл пуст или не читается", "")]
