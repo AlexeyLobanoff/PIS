@@ -4,3 +4,4 @@ etl_app.log
 *.pyc
 *.pyo
 /задачи/
+/.idea/
