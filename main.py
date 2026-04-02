@@ -9,7 +9,6 @@ from tkinter import filedialog, messagebox, scrolledtext
 import tkinter.ttk as ttk
 from dotenv import load_dotenv
 
-
 load_dotenv()
 print("""
     ·▄▄▄▄  ▄▄▄ . ▌ ▐·▄▄▄ .▄▄▌         ▄▄▄·▄▄▄ .·▄▄▄▄      ▄▄▄▄·  ▄· ▄▌      
